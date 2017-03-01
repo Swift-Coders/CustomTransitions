@@ -146,7 +146,7 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                 <state key="normal" title="Present yet another modal"/>
                                 <connections>
-                                    <segue destination="eH1-6s-YzZ" kind="presentation" modalPresentationStyle="overFullScreen" id="5LT-dq-3uL"/>
+                                    <segue destination="eH1-6s-YzZ" kind="presentation" id="5LT-dq-3uL"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -159,7 +159,7 @@
                             <constraint firstItem="gb4-aN-2iO" firstAttribute="top" secondItem="5tP-Y0-m3w" secondAttribute="bottom" constant="8" symbolic="YES" id="tp5-Yj-B5S"/>
                         </constraints>
                         <connections>
-                            <outletCollection property="gestureRecognizers" destination="zH2-mL-Jjb" appends="YES" id="7wf-p1-GIe"/>
+                            <outletCollection property="gestureRecognizers" destination="23b-Qv-9VI" appends="YES" id="LzH-FI-BYs"/>
                         </connections>
                     </view>
                     <navigationItem key="navigationItem" id="p45-z2-ERF"/>
@@ -167,9 +167,9 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="L1z-hd-6yf" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <exit id="t4M-59-Y4E" userLabel="Exit" sceneMemberID="exit"/>
-                <panGestureRecognizer minimumNumberOfTouches="1" id="zH2-mL-Jjb">
+                <panGestureRecognizer minimumNumberOfTouches="1" id="23b-Qv-9VI">
                     <connections>
-                        <action selector="pan:" destination="j0w-Gi-RvS" id="wWe-fM-Ki4"/>
+                        <action selector="pan:" destination="j0w-Gi-RvS" id="AYi-lQ-nj5"/>
                     </connections>
                 </panGestureRecognizer>
             </objects>
@@ -214,6 +214,7 @@
                 <tabBarController automaticallyAdjustsScrollViewInsets="NO" id="oBx-S2-d6I" customClass="MyTabBarController" customModule="StackTransition" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <tabBar key="tabBar" contentMode="scaleToFill" id="Km9-Th-v2h">
+                        <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </tabBar>

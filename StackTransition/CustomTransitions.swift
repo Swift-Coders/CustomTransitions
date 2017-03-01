@@ -6,192 +6,35 @@ import UIKit
 
 class FirstViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        segue.destination.modalPresentationStyle = .custom // Mandatory for custom presentations
-        segue.destination.modalPresentationCapturesStatusBarAppearance = true // Handover control of the status bar to over full screen presentation
-        segue.destination.transitioningDelegate = slideTransition
+        segue.destination.modalPresentationStyle = .custom
+        segue.destination.modalPresentationCapturesStatusBarAppearance = true
+        segue.destination.transitioningDelegate = transition
     }
+    
+    let transition = CustomTransition()
     
     @IBAction func unwindToFirst(_ segue: UIStoryboardSegue) {}
-    
-    let slideTransition = VerticalSlideTransition()
 }
 
-/********************
- SecondViewController
- ********************/
-
-class SecondViewController: UIViewController {
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        segue.destination.modalPresentationCapturesStatusBarAppearance = true
-    }
-    
-    @IBAction func pan(_ gesture: UIPanGestureRecognizer) {
-        if gesture.state == .began, let slideTransition = transitioningDelegate as? VerticalSlideTransition {
-            slideTransition.panGesture = gesture
-            dismiss(animated: true, completion: nil)
-        }
-    }
-    
-    @IBAction func unwindToSecond(_ segue: UIStoryboardSegue) {}
-}
-
-// MARK:- Custom Presentation -
-
-class CustomPresentation: UIPresentationController {
-    private var dimView: UIView!
-    private var presentingView: UIView!
-    
-    // MARK: Layout
-    
-    // presentedView will be animated automatically to this frame by the Transition object
-    override var frameOfPresentedViewInContainerView: CGRect {
-        return containerView!.bounds
-            .insetBy(dx: 0, dy: 15) // make shorter
-            .offsetBy(dx: 0, dy: 15) // push down
-    }
-    
-    // MARK: Presentation
-    
-    override func presentationTransitionWillBegin() {
-        guard let containerView = containerView
-            , let presentedView = presentedView
-            , let presentingViewSnapshot = presentingViewController.view.snapshotView(afterScreenUpdates: false)
-            else { fatalError() }
-        
-        containerView.backgroundColor = .black
-        
-        // Put a screenshot of the presenting view in the back
-        presentingView = presentingViewSnapshot
-        presentingView.frame = containerView.bounds
-        presentingView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        presentingView.layer.masksToBounds = true
-        containerView.addSubview(presentingView)
-        
-        // Create transparent black background
-        dimView = UIView(frame: containerView.bounds)
-        dimView.backgroundColor = .black
-        dimView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        dimView.alpha = 0
-        containerView.addSubview(dimView)
-        
-        // Animate our custom animations alongside the existing transition
-        presentingViewController.transitionCoordinator?.animate(alongsideTransition: { _ in
-            presentedView.layer.cornerRadius = 10
-            self.dimView.alpha = 0.5
-            self.presentingView.frame = containerView.frame
-                .insetBy(dx: 10, dy: 20)
-            self.presentingView.layer.cornerRadius = 10
-        }, completion: nil)
-    }
-    
-    // MARK: Dismissal
-    
-    // Revert everything back to normal
-    // Since we support Interactive Transition, we must handle a cancellation event
-    override func dismissalTransitionWillBegin() {
-        guard let containerView = containerView else { fatalError() }
-        
-        presentingViewController.transitionCoordinator?.animate(alongsideTransition: { _  in
-            self.dimView.alpha = 0
-            self.presentingView.frame = containerView.frame
-        }, completion: { context in
-            if !context.isCancelled {
-                self.presentingView.layer.cornerRadius = 0
-            }
-        })
-    }
-}
-
-// MARK:- Custom Transition -
-
-// MARK: VerticalSlideTransition
-
-// MARK: Properties
-class VerticalSlideTransition: UIPercentDrivenInteractiveTransition {
-    
+class CustomTransition: UIPercentDrivenInteractiveTransition, UIViewControllerTransitioningDelegate {
     enum Mode {
         case present, dismiss
     }
     var mode = Mode.present
     
-    var isPresenting: Bool { return mode == .present }
+    var isInteractive = false
     
     var panGesture: UIPanGestureRecognizer? {
         didSet {
             isInteractive = true
-            panGesture?.addTarget(self, action: #selector(handlePanGesture(_:)))
+            panGesture?.addTarget(self, action: #selector(handleGesture(_:)))
         }
     }
     
-    var isInteractive = false
+    fileprivate var transitionContext: UIViewControllerContextTransitioning!
     
-    fileprivate var transitionContext: UIViewControllerContextTransitioning?
-}
-
-// MARK: Animated Transition
-extension VerticalSlideTransition: UIViewControllerAnimatedTransitioning {
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.3
-    }
-    
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        // toView is presented
-        // fromView is dismissed
-        guard let view = transitionContext.view(forKey: isPresenting ? .to : .from)
-            , let viewController = transitionContext.viewController(forKey: isPresenting ? .to : .from)
-            else { fatalError() }
-        
-        // We're required to add the view manually before the transition begins
-        transitionContext.containerView.addSubview(view)
-        
-        // finalFrame is presented
-        // initialFrame is dismissed
-        let frame = isPresenting ?
-            transitionContext.finalFrame(for: viewController) :
-            transitionContext.initialFrame(for: viewController)
-        
-        // Starting frame
-        if isPresenting {
-            view.frame = frame.offsetBy(dx: 0, dy: frame.height) // start offscreen
-        } else {
-            view.frame = frame // start onscreen
-        }
-        
-        // End frame
-        let animations = {
-            if self.isPresenting {
-                view.frame = frame // end onscreen
-            } else {
-                view.frame = frame.offsetBy(dx: 0, dy: frame.height) // end offscreen
-            }
-        }
-        
-        let completion: ((Bool) -> Void) = { _ in
-            let success = !transitionContext.transitionWasCancelled
-            
-            // Remove the view if presentation failed, or
-            // if dismissal succeeded
-            if !success && self.isPresenting || success && !self.isPresenting {
-                view.removeFromSuperview()
-            }
-            
-            // Make sure we call this everytime!
-            transitionContext.completeTransition(success)
-        }
-        
-        let duration = transitionDuration(using: transitionContext)
-        
-        UIView.animate(withDuration: duration, delay: 0, options: [], animations: animations, completion: completion)
-    }
-}
-
-extension VerticalSlideTransition: UIViewControllerTransitioningDelegate {
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
-        return CustomPresentation(presentedViewController: presented, presenting: presenting)
+        return CardPresentation(presentedViewController: presented, presenting: presenting)
     }
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
@@ -204,10 +47,6 @@ extension VerticalSlideTransition: UIViewControllerTransitioningDelegate {
         return self
     }
     
-    func interactionControllerForPresentation(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        return nil
-    }
-    
     func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
         if isInteractive {
             return self
@@ -216,36 +55,173 @@ extension VerticalSlideTransition: UIViewControllerTransitioningDelegate {
     }
 }
 
-// MARK: Interactive transition
-extension VerticalSlideTransition {
+/********************
+ SecondViewController
+ ********************/
+
+class SecondViewController: UIViewController {
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
     
+    @IBAction func pan(_ gesture: UIPanGestureRecognizer) {
+        if gesture.state == .began, let transition = transitioningDelegate as? CustomTransition {
+            transition.panGesture = gesture
+            presentingViewController?.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    
+    @IBAction func unwindToSecond(_ segue: UIStoryboardSegue) {}
+}
+
+// MARK:- Custom Presentation -
+
+class CardPresentation: UIPresentationController {
+    private var dimView: UIView!
+    private var presentingView: UIView!
+    
+    override var frameOfPresentedViewInContainerView: CGRect {
+        return containerView!.bounds
+            .insetBy(dx: 0, dy: 15) // shorter
+            .offsetBy(dx: 0, dy: 15) // push down
+    }
+    
+    override func presentationTransitionWillBegin() {
+        guard let containerView = containerView
+            , let presentedView = presentedView
+            , let presentingViewSnapshow = presentingViewController.view.snapshotView(afterScreenUpdates: false)
+            else { fatalError() }
+        
+        containerView.backgroundColor = .black
+        
+        presentingView = presentingViewSnapshow
+        presentingView.frame = containerView.bounds
+        presentingView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        presentingView.layer.masksToBounds = true
+        containerView.addSubview(presentingView)
+        
+        dimView = UIView(frame: containerView.bounds)
+        dimView.backgroundColor = .black
+        dimView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        dimView.alpha = 0
+        containerView.addSubview(dimView)
+        
+        presentingViewController.transitionCoordinator?.animate(alongsideTransition: { _ in
+            self.dimView.alpha = 0.5
+            presentedView.layer.cornerRadius = 10
+            self.presentingView.frame = containerView.bounds
+                .insetBy(dx: 10, dy: 20)
+            self.presentingView.layer.cornerRadius = 10
+        }, completion: nil)
+    }
+    
+    override func dismissalTransitionWillBegin() {
+        presentingViewController.transitionCoordinator?.animate(alongsideTransition: { _ in
+            self.dimView.alpha = 0
+            self.presentingView.frame = self.containerView!.bounds
+        }, completion: { context in
+            if !context.isCancelled {
+                self.presentingView.layer.cornerRadius = 0
+            }
+        })
+    }
+}
+
+// MARK:- Custom Transition -
+
+// Animated Transition
+extension CustomTransition: UIViewControllerAnimatedTransitioning {
+    
+    var isPresenting: Bool { return mode == .present }
+    
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 0.3
+    }
+    
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let view = transitionContext.view(forKey: isPresenting ? .to : .from)
+            , let viewController = transitionContext.viewController(forKey: isPresenting ? .to : .from)
+            else { return }
+        
+        transitionContext.containerView.addSubview(view)
+        
+        let frame = isPresenting ?
+            transitionContext.finalFrame(for: viewController) :
+            transitionContext.initialFrame(for: viewController)
+        
+        // Starting frame
+        if isPresenting {
+            view.frame = frame.offsetBy(dx: 0, dy: frame.height) // start offscreen
+        } else {
+            view.frame = frame // start onscreen
+        }
+        
+        // End frame
+        let animation = {
+            if self.isPresenting {
+                view.frame = frame // onscreen
+            } else {
+                view.frame = frame.offsetBy(dx: 0, dy: frame.height) // offscreen
+            }
+        }
+        
+        let duration = transitionDuration(using: transitionContext)
+        UIView.animate(withDuration: duration, delay: 0, options: [], animations: animation) { _ in
+            let success = !transitionContext.transitionWasCancelled
+            if !success && self.isPresenting || success && !self.isPresenting {
+                view.removeFromSuperview()
+            }
+            transitionContext.completeTransition(success)
+        }
+    }
+}
+
+// Interactive Transition
+extension CustomTransition {
     override func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
         self.transitionContext = transitionContext
         super.startInteractiveTransition(transitionContext)
     }
     
-    func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
-        guard let transitionContext = transitionContext else { return }
-        let translation = gesture.translation(in: transitionContext.containerView) // How much the finger moved
+    func handleGesture(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: transitionContext.containerView)
         let percentage = translation.y / transitionContext.containerView.bounds.height
-        let threshold: CGFloat = 0.2 // 20% down
+        let threshold: CGFloat = 0.2 // 20%
         
         switch gesture.state {
-        case .began: break // Handeled by view controller
-        case .changed: update(percentage)
+        case .began: break
+        case .changed: self.update(percentage)
         case .ended:
             if percentage < threshold { fallthrough } // cancel
-            
-            finish()
+            self.finish()
             isInteractive = false
-        default:
-            cancel()
+        case .failed, .possible, .cancelled:
+            self.cancel()
             isInteractive = false
         }
     }
 }
 
-// NARK:- GrowTransition
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*********************************
  UINavigationController Transition
@@ -281,7 +257,6 @@ class GrowTransition: NSObject, UIViewControllerAnimatedTransitioning, UINavigat
             , let toView = transitionContext.view(forKey: .to)
             else { fatalError() }
         
-        
         // Setup required frames
         fromView.frame = transitionContext.initialFrame(for: fromViewController)
         toView.frame = transitionContext.finalFrame(for: toViewController)
@@ -313,8 +288,6 @@ class GrowTransition: NSObject, UIViewControllerAnimatedTransitioning, UINavigat
         })
     }
 }
-
-// MARK:- HorizonalSlideTransition
 
 /*****************************
  UITabBarController Transition
@@ -366,7 +339,7 @@ class HorizonalSlideTransition: NSObject, UIViewControllerAnimatedTransitioning,
         fromView.frame = transitionContext.initialFrame(for: fromViewController)
         toView.frame = transitionContext.finalFrame(for: toViewController)
         
-        let width = transitionContext.containerView.bounds.width + 10
+        let width = transitionContext.containerView.bounds.width
         let transform: CGAffineTransform
         
         // Starting location
