@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0908A9DF1E674F97009B3A53 /* Demo.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0908A9DD1E674F97009B3A53 /* Demo.mov */; };
+		0908A9E01E674F97009B3A53 /* SwiftCoders 2:28:2017.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0908A9DE1E674F97009B3A53 /* SwiftCoders 2:28:2017.pdf */; };
 		09FE4C091E5F8A2F00B2B7A3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09FE4C081E5F8A2F00B2B7A3 /* AppDelegate.swift */; };
 		09FE4C0B1E5F8A2F00B2B7A3 /* CustomTransitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09FE4C0A1E5F8A2F00B2B7A3 /* CustomTransitions.swift */; };
 		09FE4C0E1E5F8A2F00B2B7A3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 09FE4C0C1E5F8A2F00B2B7A3 /* Main.storyboard */; };
@@ -34,6 +36,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0908A9DD1E674F97009B3A53 /* Demo.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = Demo.mov; sourceTree = "<group>"; };
+		0908A9DE1E674F97009B3A53 /* SwiftCoders 2:28:2017.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "SwiftCoders 2:28:2017.pdf"; sourceTree = "<group>"; };
 		09FE4C051E5F8A2F00B2B7A3 /* StackTransition.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StackTransition.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09FE4C081E5F8A2F00B2B7A3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09FE4C0A1E5F8A2F00B2B7A3 /* CustomTransitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTransitions.swift; sourceTree = "<group>"; };
@@ -75,9 +79,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0908A9DC1E674F97009B3A53 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				0908A9DD1E674F97009B3A53 /* Demo.mov */,
+				0908A9DE1E674F97009B3A53 /* SwiftCoders 2:28:2017.pdf */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
 		09FE4BFC1E5F8A2F00B2B7A3 = {
 			isa = PBXGroup;
 			children = (
+				0908A9DC1E674F97009B3A53 /* Assets */,
 				09FE4C071E5F8A2F00B2B7A3 /* StackTransition */,
 				09FE4C1C1E5F8A2F00B2B7A3 /* StackTransitionTests */,
 				09FE4C271E5F8A2F00B2B7A3 /* StackTransitionUITests */,
@@ -247,6 +261,8 @@
 			files = (
 				09FE4C131E5F8A2F00B2B7A3 /* LaunchScreen.storyboard in Resources */,
 				09FE4C101E5F8A2F00B2B7A3 /* Assets.xcassets in Resources */,
+				0908A9E01E674F97009B3A53 /* SwiftCoders 2:28:2017.pdf in Resources */,
+				0908A9DF1E674F97009B3A53 /* Demo.mov in Resources */,
 				09FE4C0E1E5F8A2F00B2B7A3 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
