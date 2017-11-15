@@ -224,7 +224,7 @@ extension VerticalSlideTransition {
         super.startInteractiveTransition(transitionContext)
     }
     
-    func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+    @objc func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
         guard let transitionContext = transitionContext else { return }
         let translation = gesture.translation(in: transitionContext.containerView) // How much the finger moved
         let percentage = translation.y / transitionContext.containerView.bounds.height
