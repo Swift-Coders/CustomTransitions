@@ -112,7 +112,7 @@ class CardPresentation: UIPresentationController {
     private var mask: CAShapeLayer!
     
     // MARK: Presentation
-    
+
     override func presentationTransitionWillBegin() {
         guard let containerView = containerView
             , let presentedView = presentedView
